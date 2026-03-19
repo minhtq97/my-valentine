@@ -194,15 +194,20 @@ const Btn = styled.button`
   }
 `;
 
-const BtnYes = styled(Btn)`
+const BtnYes = styled(Btn)<{ $scale: number }>`
   background: linear-gradient(145deg, ${heart}, ${roseDark});
   color: white;
   box-shadow: 0 4px 16px rgba(230, 57, 111, 0.4);
   position: relative;
   z-index: 2;
+  transform: scale(${(p) => p.$scale});
+  transition: transform 0.25s ease-out, box-shadow 0.2s;
   &:hover {
-    transform: scale(1.05);
+    transform: scale(${(p) => p.$scale * 1.05});
     box-shadow: 0 6px 20px rgba(230, 57, 111, 0.5);
+  }
+  &:active {
+    transform: scale(${(p) => p.$scale * 0.97});
   }
 `;
 
@@ -210,14 +215,15 @@ const BtnNo = styled(Btn)<{ $left?: number; $top?: number; $moved: boolean }>`
   background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
   color: ${text};
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  position: ${(p) => (p.$moved ? 'absolute' : 'relative')};
-  z-index: 1;
+  position: ${(p) => (p.$moved ? 'fixed' : 'relative')};
+  z-index: 10;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
   left: ${(p) => (p.$moved ? `${p.$left ?? 0}px` : 'auto')};
   top: ${(p) => (p.$moved ? `${p.$top ?? 0}px` : 'auto')};
-  transform: ${(p) => (p.$moved ? 'none' : 'none')};
+  transform: none;
+  transition: left 0.35s ease-out, top 0.35s ease-out, box-shadow 0.2s;
 `;
 
 const QuestionSection = styled.section<{ $hide: boolean }>`
@@ -321,19 +327,18 @@ function firework() {
 export default function Home() {
   const [accepted, setAccepted] = useState(false);
   const [noPos, setNoPos] = useState<{ x: number; y: number } | null>(null);
+  const [noAttempts, setNoAttempts] = useState(0);
   const buttonsRef = useRef<HTMLDivElement>(null);
   const noBtnRef = useRef<HTMLButtonElement>(null);
 
   const moveNoButton = useCallback(() => {
-    const container = buttonsRef.current;
+    setNoAttempts((n) => n + 1);
     const noBtn = noBtnRef.current;
-    if (!container || !noBtn) return;
-    const w = container.offsetWidth;
-    const h = container.offsetHeight;
+    if (!noBtn) return;
     const btnW = noBtn.offsetWidth;
     const btnH = noBtn.offsetHeight;
-    const maxX = Math.max(0, w - btnW);
-    const maxY = Math.max(0, h - btnH);
+    const maxX = Math.max(0, (typeof window !== 'undefined' ? window.innerWidth : 400) - btnW);
+    const maxY = Math.max(0, (typeof window !== 'undefined' ? window.innerHeight : 600) - btnH);
     setNoPos({
       x: Math.random() * maxX,
       y: Math.random() * maxY,
@@ -393,7 +398,11 @@ export default function Home() {
               Pick one / Such dir einen aus <InlineIcon src="/icons/heart.svg" $size={1} alt="" /> <InlineIcon src="/icons/flower.svg" $size={1} alt="" /> <InlineIcon src="/icons/sparkle.svg" $size={1} alt="" /> <InlineIcon src="/icons/heart.svg" $size={1} alt="" /> <InlineIcon src="/icons/rose.svg" $size={1} alt="" />
             </Sub>
             <ButtonsWrapper ref={buttonsRef}>
-              <BtnYes type="button" onClick={() => setAccepted(true)}>
+              <BtnYes
+                type="button"
+                $scale={Math.min(1 + noAttempts * 0.08, 1.6)}
+                onClick={() => setAccepted(true)}
+              >
                 Yes
               </BtnYes>
               <BtnNo
