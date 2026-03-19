@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import Head from 'next/head';
 import styled, { keyframes } from 'styled-components';
+import confetti from 'canvas-confetti';
 
 const rose = '#e8a0b8';
 const roseDark = '#c77d9a';
@@ -266,6 +267,57 @@ const Thanks = styled.div`
   }
 `;
 
+const CuteGif = styled.img`
+  width: 140px;
+  height: auto;
+  border-radius: 12px;
+  margin: 0 auto 1rem;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  @media (max-width: 480px) {
+    width: 120px;
+  }
+`;
+
+const colors = ['#e6396f', '#e8a0b8', '#c77d9a', '#fff5f7', '#f8d7da'];
+
+function firework() {
+  const duration = 2500;
+  const end = Date.now() + duration;
+  const frame = () => {
+    confetti({
+      particleCount: 3,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors,
+    });
+    confetti({
+      particleCount: 3,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors,
+    });
+    confetti({
+      particleCount: 5,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors,
+    });
+    if (Date.now() < end) requestAnimationFrame(frame);
+  };
+  frame();
+  setTimeout(() => {
+    confetti({
+      particleCount: 120,
+      spread: 100,
+      origin: { y: 0.5 },
+      colors,
+    });
+  }, 200);
+}
+
 export default function Home() {
   const [accepted, setAccepted] = useState(false);
   const [noPos, setNoPos] = useState<{ x: number; y: number } | null>(null);
@@ -287,6 +339,10 @@ export default function Home() {
       y: Math.random() * maxY,
     });
   }, []);
+
+  useEffect(() => {
+    if (accepted) firework();
+  }, [accepted]);
 
   return (
     <>
@@ -358,6 +414,10 @@ export default function Home() {
           </QuestionSection>
 
           <SuccessSection $show={accepted}>
+            <CuteGif
+              src="https://media.giphy.com/media/OwFsPO2tCcrSYxDErS/giphy.gif"
+              alt="Cute dancing cat"
+            />
             <SuccessTitle>
               <InlineIcon src="/icons/celebration.svg" $size={1.3} alt="" /> Yay, Mai Anh! <InlineIcon src="/icons/heart.svg" $size={1.2} alt="" />
             </SuccessTitle>
